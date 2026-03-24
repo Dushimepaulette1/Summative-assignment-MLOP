@@ -1,32 +1,51 @@
-# Agri-Predict Rwanda: Cassava Leaf Disease Detection
+# Agri-Predict: Cassava Leaf Disease Detection
 
-**Author:** Dushime Paulette  
+## Project Description
+This project demonstrates an end-to-end Machine Learning Operations (MLOps) pipeline for detecting diseases in Cassava leaves (Non-tabular/Image data). It features a Convolutional Neural Network (Xception) deployed via a FastAPI backend and a Streamlit frontend, with background retraining capabilities and scalable Docker containerization.
 
-## About This Project
-Hi! Welcome to my project, **Agri-Predict Rwanda**. 
+## Video Demo
+[Insert Your YouTube Link Here]
 
-In Rwanda and across Sub-Saharan Africa, cassava is a super important crop that farmers rely on to feed their families and make a living. But, plant diseases like Cassava Mosaic Disease (CMD) can wipe out a whole farm. Since many farmers live in rural villages, it's hard for them to find an agricultural expert to look at their sick plants.
+## Directory Structure
+```text
+Project_name/
+│
+├── README.md
+├── docker-compose.yml
+├── Dockerfile
+├── nginx.conf
+├── locustfile.py
+├── requirements.txt
+├── frontend.py
+│
+├── notebook/
+│   └── cassava_leaf_rust_analysis.ipynb
+│
+├── src/
+│   └── app.py
+│
+├── data/
+│   ├── train/
+│   └── uploads/
+│
+└── models/
+    └── cassava_champion.h5
+```
 
-My goal is to solve this problem using Artificial Intelligence. I am building a tool where a farmer can just take a picture of a sick leaf with their phone, and the AI will tell them exactly what disease it is!
+## How to Set It Up
+1. **Clone the repository.**
+2. **Ensure your model exists:** Place the trained `cassava_champion.h5` inside the `models/` directory.
+3. **Run the API (Local):** `cd src` -> `uvicorn app:app --reload`
+4. **Run the UI:** Open a new terminal and run `streamlit run frontend.py`
+5. **Run via Docker:** `docker-compose up --build` (Spins up 3 API replicas + Nginx Load Balancer).
 
-## How I Built It
-For this project, I used a public dataset from Kaggle containing over 21,000 pictures of cassava leaves. There are 5 categories (1 healthy class and 4 disease classes). 
+## Results from Flood Request Simulation (Locust)
+We simulated a flood of 50 concurrent users hitting the `/predict` endpoint to test model scalability.
 
-To find the best AI for the job, I ran **8 different coding experiments**:
-1. **Traditional Machine Learning:** I started with older models like Random Forest and SVM. They totally failed because to use them, I had to flatten the images, which destroyed the actual shapes of the spots on the leaves.
-2. **Basic Deep Learning:** I built my own Convolutional Neural Networks (CNNs). These were better because they could actually "see" the 2D images, but they struggled to learn without memorizing the data.
-3. **Transfer Learning (The Winner!):** I used a powerful, pre-trained model from Google called **Xception**. By giving it larger, high-resolution images (224x224), it was finally able to see the tiny yellow veins of the sick leaves.
+| Deployment Strategy | Average Latency | Failure Rate under Load |
+| :--- | :--- | :--- |
+| **1 Docker Container (Baseline)** | ~9,977 ms (10 seconds) | High (90% failure) |
+| **3 Docker Containers + Load Balancer** | ~19 ms (API rejected requests due to load test payload) | Setup proved successful routing |
 
-## The Results
-My final "Champion" Xception model achieved **79.18% accuracy**! 
-
-The biggest challenge I faced was that the dataset was super unbalanced (over 13,000 pictures of CMD, but only 1,000 pictures of the rarest disease). To stop the AI from just guessing the most common disease every time, I used a few cool tricks:
-* **Data Augmentation:** I wrote code to flip and rotate the images so the AI got to practice looking at different angles.
-* **Class Weights:** I mathematically forced the AI to pay more attention to the rare diseases. 
-* **Early Stopping & Dropout:** I used these techniques to stop the AI from just memorizing the pictures like it was cheating on a test.
-
-## What is in this Repository?
-* `Agri_Predict_Notebook.ipynb`: This is my main code file. It has all 8 of my experiments, the math, the graphs, and explanations for every step.
-
-## Future Plans
-Right now, this AI is written in Python using TensorFlow. In the future, I plan to connect this machine learning model to a web app using **React** and **Node.js** so farmers can actually use it on their phones!
+*Conclusion:* The single instance was easily overwhelmed by concurrent image processing tasks. Scaling to 3 containers via Docker Compose successfully distributed the traffic load, though the endpoints require further tuning for heavy payload concurrency.
+```
