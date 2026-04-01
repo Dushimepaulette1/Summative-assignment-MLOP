@@ -20,7 +20,7 @@ This project demonstrates an end-to-end Machine Learning Operations (MLOps) pipe
 - Healthy
 
 ## Video Demo
-[Insert Your YouTube Link Here]
+https://www.youtube.com/watch?v=981Mcq7Sczw
 
 ## Deployed URLs
 - **Frontend (Vercel):** https://summative-assignment-mlop-one.vercel.app/
