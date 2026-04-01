@@ -11,17 +11,28 @@ import time
 import datetime
 import uvicorn
 import json
+import urllib.request
 
-# --- 1. PATHS (must come first) ---
+# --- 1. PATHS ---
 BASE_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH = os.path.join(BASE_DIR, "models", "cassava_champion.keras")
 UPLOAD_DIR = os.path.join(BASE_DIR, "data", "uploads")
 DB_PATH    = os.path.join(BASE_DIR, "data", "database.json")
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-print(f"Loading model from: {MODEL_PATH}")
+os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
 
-# --- 2. LOAD MODEL ---
+# --- 2. DOWNLOAD MODEL IF NOT PRESENT ---
+MODEL_URL = "https://huggingface.co/paulette12344545/cassava-champion/resolve/main/best_model.keras"
+
+if not os.path.exists(MODEL_PATH):
+    print(f"Model not found locally. Downloading from Hugging Face...")
+    urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+    print("Model downloaded successfully.")
+else:
+    print(f"Model found at: {MODEL_PATH}")
+
+# --- 3. LOAD MODEL ---
 model = None
 try:
     model = tf.keras.models.load_model(MODEL_PATH)
@@ -29,7 +40,7 @@ try:
 except Exception as e:
     print(f"Error loading model: {e}")
 
-# --- 3. APP SETUP ---
+# --- 4. APP SETUP ---
 app = FastAPI(title="Cassava Disease ML API")
 START_TIME = time.time()
 
@@ -49,7 +60,7 @@ CLASS_NAMES = {
     4: "Healthy"
 }
 
-# --- 4. ENDPOINTS ---
+# --- 5. ENDPOINTS ---
 
 @app.get("/")
 def read_root():
@@ -78,9 +89,9 @@ async def predict_image(file: UploadFile = File(...)):
         }
 
         return {
-            "filename":         file.filename,
-            "prediction":       CLASS_NAMES[predicted_class_idx],
-            "confidence":       round(confidence * 100, 2),
+            "filename":          file.filename,
+            "prediction":        CLASS_NAMES[predicted_class_idx],
+            "confidence":        round(confidence * 100, 2),
             "all_probabilities": all_probabilities
         }
     except Exception as e:
@@ -110,6 +121,6 @@ async def trigger_retrain(background_tasks: BackgroundTasks):
     background_tasks.add_task(trigger_retraining_pipeline)
     return {"message": "Retraining triggered successfully in the background."}
 
-# --- 5. RUN ---
+# --- 6. RUN ---
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
