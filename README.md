@@ -118,11 +118,20 @@ We simulated a flood of 50 concurrent users hitting the `/predict` endpoint to t
 ## Model Performance
 | Metric | Score |
 | :--- | :--- |
-| Validation Accuracy | 86.24% |
+| Validation Accuracy | 86.73% |
+| Weighted F1-Score | 0.868 |
+| Weighted Precision | 0.870 |
+| Weighted Recall | 0.867 |
 | Architecture | EfficientNetB4 (ImageNet pretrained) |
 | Input Size | 380 × 380 |
 | Training Images | 17,117 |
 | Validation Images | 4,280 |
+
+## Model File
+The trained model (`cassava_champion.keras`, 209 MB) exceeds GitHub's file size limit and is hosted on Hugging Face Hub:
+- **Model URL:** https://huggingface.co/paulette12344545/cassava-champion
+
+The backend automatically downloads the model on first startup via `urllib.request.urlretrieve`.
 
 ## API Endpoints
 | Method | Endpoint | Description |
