@@ -1,3 +1,12 @@
+---
+title: Agri Predict API
+emoji: 🌿
+colorFrom: green
+colorTo: blue
+sdk: docker
+pinned: false
+---
+
 # Agri-Predict: Cassava Leaf Disease Detection
 
 ## Project Description
