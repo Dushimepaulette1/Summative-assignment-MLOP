@@ -5,7 +5,7 @@ import DiseaseDetection from "./components/DiseaseDetection";
 import Retraining from "./components/Retraining";
 import Visualizations from "./components/Visualizations";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://paulette12344545-agri-predict-api.hf.space";
 
 export default function App() {
   const [uptime, setUptime]     = useState("Connecting...");
