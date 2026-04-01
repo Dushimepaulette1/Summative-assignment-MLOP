@@ -1,11 +1,10 @@
 import { useState, useRef } from "react";
 import axios from "axios";
-import { UploadCloud, X, CheckCircle, AlertTriangle, RefreshCw, Database, Zap } from "lucide-react";
 
 const STEPS = [
-  { n: "01", icon: UploadCloud, title: "Select Images",  desc: "Drag & drop or click to add multiple cassava leaf photos from your device."   },
-  { n: "02", icon: Database,    title: "Data Saved",     desc: "Images are stored in the database and logged for traceability."               },
-  { n: "03", icon: Zap,         title: "Model Retrains", desc: "The pipeline fine-tunes the model in the background — no waiting required."   },
+  { n: "01", icon: "📁", title: "Select Images",  desc: "Drag & drop or click Browse to add multiple cassava leaf photos." },
+  { n: "02", icon: "💾", title: "Data Saved",     desc: "Images are stored in the database and logged for traceability."  },
+  { n: "03", icon: "⚡", title: "Model Retrains", desc: "The pipeline fine-tunes the model in the background."            },
 ];
 
 export default function Retraining({ apiUrl }) {
@@ -45,111 +44,150 @@ export default function Retraining({ apiUrl }) {
   const busy = phase === "uploading" || phase === "retraining";
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
 
-      <div>
-        <h2 className="text-3xl font-black text-white">Retrain the Model</h2>
-        <p className="text-white/60 text-lg mt-1">Upload new field images to continuously improve detection accuracy.</p>
+      {/* Section heading */}
+      <div style={{
+        background: "#000080", color: "white",
+        padding: "3px 8px", fontSize: 11, fontWeight: "bold",
+        borderLeft: "3px solid #4080ff"
+      }}>
+        🔄 Retrain the Model — Upload new field images to continuously improve detection accuracy.
       </div>
 
       {/* Steps */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {STEPS.map(({ n, icon: Icon, title, desc }) => (
-          <div key={n} className="bg-white/10 backdrop-blur rounded-2xl border border-white/15 p-6 text-white">
-            <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center mb-4">
-              <Icon className="w-5 h-5 text-white" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+        {STEPS.map(({ n, icon, title, desc }) => (
+          <div key={n} className="win-window" style={{ padding: 0, overflow: "hidden" }}>
+            <div className="win-titlebar" style={{ fontSize: 11 }}>
+              {icon} Step {n} — {title}
             </div>
-            <p className="text-xs font-black text-white/40 uppercase tracking-widest mb-1">Step {n}</p>
-            <p className="text-base font-bold mb-2">{title}</p>
-            <p className="text-white/50 text-sm leading-relaxed">{desc}</p>
+            <div style={{ padding: "6px 10px", fontSize: 10, lineHeight: 1.5, color: "#404040" }}>
+              {desc}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Upload card */}
-      <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-        <div className="px-8 py-5 border-b border-slate-100">
-          <h3 className="text-lg font-bold text-slate-900">Upload Training Images</h3>
-          <p className="text-slate-400 text-sm mt-0.5">Multiple files supported</p>
+      {/* Upload window */}
+      <div className="win-window" style={{ overflow: "hidden" }}>
+        <div className="win-titlebar" style={{ fontSize: 11 }}>
+          📂 Upload Training Images
+          <div className="win-titlebar-buttons">
+            <div className="win-btn-chrome">?</div>
+          </div>
         </div>
+        <div style={{ padding: 8, display: "flex", flexDirection: "column", gap: 8 }}>
 
-        <div className="p-8 space-y-6">
           {/* Drop zone */}
           <div
+            className={`win-dropzone${drag ? " drag" : ""}`}
             onDragOver={e => { e.preventDefault(); setDrag(true);  }}
             onDragLeave={e => { e.preventDefault(); setDrag(false); }}
             onDrop={e => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer.files); }}
             onClick={() => inputRef.current.click()}
-            className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all duration-200 ${
-              drag ? "border-slate-400 bg-slate-50" : "border-slate-200 hover:border-slate-400 hover:bg-slate-50"
-            }`}
+            style={{ minHeight: 120 }}
           >
             <input type="file" ref={inputRef} onChange={e => addFiles(e.target.files)} accept="image/*" multiple className="hidden" />
-            <div className="w-16 h-16 mx-auto bg-slate-100 rounded-2xl flex items-center justify-center mb-5">
-              <UploadCloud className="w-8 h-8 text-slate-400" />
-            </div>
-            <p className="text-xl font-bold text-slate-700 mb-2">
-              {drag ? "Drop images here" : "Drag & drop multiple images"}
+            <div style={{ fontSize: 32, marginBottom: 6, userSelect: "none" }}>📁</div>
+            <p style={{ fontSize: 11, fontWeight: "bold", marginBottom: 4, color: "#000080" }}>
+              {drag ? "Release to add images" : "Drag & drop multiple images here"}
             </p>
-            <p className="text-slate-400 text-base">
-              or <span className="text-slate-700 font-semibold underline underline-offset-2">click to select files</span>
-            </p>
-            <p className="text-slate-300 text-sm mt-2">JPG, PNG supported — multiple files allowed</p>
+            <p style={{ fontSize: 10, color: "#808080", marginBottom: 8 }}>— or —</p>
+            <button
+              className="win-btn primary"
+              onClick={e => { e.stopPropagation(); inputRef.current.click(); }}
+            >
+              Browse…
+            </button>
+            <p style={{ fontSize: 10, color: "#808080", marginTop: 6 }}>JPG, PNG supported</p>
           </div>
 
-          {/* File preview grid */}
+          {/* File preview */}
           {files.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <p className="font-bold text-slate-700">
-                  {files.length} image{files.length > 1 ? "s" : ""} selected
-                </p>
-                <button onClick={reset} className="text-sm text-slate-400 hover:text-red-500 font-semibold transition">Clear all</button>
+            <fieldset className="win-groupbox">
+              <legend>{files.length} image{files.length > 1 ? "s" : ""} selected</legend>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+                <button className="win-btn" onClick={reset} style={{ fontSize: 10 }}>Remove All</button>
               </div>
-              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 max-h-52 overflow-y-auto pr-1">
+              <div className="win-inset" style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(56px, 1fr))",
+                gap: 4,
+                padding: 4,
+                maxHeight: 180,
+                overflowY: "auto",
+                background: "white",
+              }}>
                 {files.map((f, i) => (
-                  <div key={i} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200">
-                    <img src={URL.createObjectURL(f)} alt={f.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition" />
+                  <div key={i} style={{ position: "relative" }}>
+                    <img
+                      src={URL.createObjectURL(f)}
+                      alt={f.name}
+                      style={{ width: "100%", aspectRatio: "1", objectFit: "cover", display: "block", border: "1px solid #808080" }}
+                    />
                     <button
                       onClick={e => { e.stopPropagation(); remove(i); }}
-                      className="absolute top-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center text-slate-500 opacity-0 group-hover:opacity-100 transition shadow"
+                      className="win-btn"
+                      style={{
+                        position: "absolute", top: 0, right: 0,
+                        padding: "0 3px", fontSize: 9, lineHeight: 1.4,
+                        background: "#c0c0c0", border: "1px solid #808080"
+                      }}
                     >
-                      <X className="w-3 h-3" />
+                      ✕
                     </button>
                   </div>
                 ))}
               </div>
-            </div>
+            </fieldset>
           )}
 
           {/* Trigger button */}
-          <button
-            onClick={handleRetrain}
-            disabled={!files.length || busy}
-            className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white text-base font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg"
-          >
-            {busy
-              ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full spin" />{phase === "uploading" ? "Uploading images…" : "Starting retraining…"}</>
-              : <><RefreshCw className="w-4 h-4" />Upload & Trigger Retraining</>
-            }
-          </button>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              className="win-btn primary"
+              onClick={handleRetrain}
+              disabled={!files.length || busy}
+              style={{ flex: 1, justifyContent: "center", fontSize: 11 }}
+            >
+              {busy
+                ? <><span className="spin" style={{ display: "inline-block", width: 10, height: 10, border: "2px solid #808080", borderTopColor: "#000", borderRadius: "50%" }} />
+                    {phase === "uploading" ? " Uploading images…" : " Starting retraining…"}
+                  </>
+                : "🔄 Upload & Trigger Retraining"
+              }
+            </button>
+            <button className="win-btn" onClick={reset} disabled={busy} style={{ fontSize: 11 }}>Reset</button>
+          </div>
+
+          {/* Progress bar when busy */}
+          {busy && (
+            <div>
+              <p style={{ fontSize: 10, color: "#000080", marginBottom: 3 }}>{msg}</p>
+              <div className="win-progress-track">
+                <div className="win-progress-fill" style={{ width: phase === "retraining" ? "80%" : "40%" }} />
+              </div>
+            </div>
+          )}
 
           {/* Status message */}
-          {phase && (
-            <div className={`flex items-start gap-3 p-5 rounded-2xl border fade-in ${
-              phase === "success" ? "bg-slate-50 border-slate-200" :
-              phase === "error"   ? "bg-red-50 border-red-200"     :
-                                    "bg-slate-50 border-slate-200"
-            }`}>
-              {phase === "success" && <CheckCircle  className="w-5 h-5 text-slate-700 shrink-0 mt-0.5" />}
-              {phase === "error"   && <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5"  />}
-              {busy                && <span className="w-5 h-5 border-2 border-slate-200 border-t-slate-600 rounded-full spin shrink-0 mt-0.5" />}
+          {phase && !busy && (
+            <div className="fade-in" style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 8,
+              padding: "6px 8px",
+              background: phase === "success" ? "#e0ffe0" : "#ffe0e0",
+              border: `1px solid ${phase === "success" ? "#008000" : "#800000"}`,
+              fontSize: 11,
+            }}>
+              <span>{phase === "success" ? "✅" : "❌"}</span>
               <div>
-                <p className={`font-bold text-sm ${phase === "error" ? "text-red-700" : "text-slate-900"}`}>
-                  {phase === "success" ? "Retraining Started" : phase === "error" ? "Error Occurred" : "In Progress"}
+                <p style={{ fontWeight: "bold", color: phase === "success" ? "#004000" : "#800000" }}>
+                  {phase === "success" ? "Retraining Started Successfully" : "Error Occurred"}
                 </p>
-                <p className={`text-sm mt-0.5 ${phase === "error" ? "text-red-600" : "text-slate-500"}`}>{msg}</p>
+                <p style={{ marginTop: 2, color: "#404040" }}>{msg}</p>
               </div>
             </div>
           )}

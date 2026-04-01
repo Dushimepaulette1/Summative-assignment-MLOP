@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import axios from "axios";
-import { UploadCloud, X, AlertTriangle, CheckCircle, Leaf, Info, Camera } from "lucide-react";
 
 const CLASSES = [
   { key: "Cassava Bacterial Blight (CBB)",       short: "CBB",  desc: "Angular water-soaked lesions turning brown. Remove infected plants and avoid overhead irrigation." },
@@ -35,7 +34,7 @@ export default function DiseaseDetection({ apiUrl }) {
       const r = await axios.post(`${apiUrl}/predict`, fd);
       setResult(r.data);
     } catch {
-      setResult({ error: "Could not reach the backend. Make sure the API is running on port 8000." });
+      setResult({ error: "Could not reach the backend. Make sure the API is running." });
     }
     setLoading(false);
   };
@@ -46,195 +45,203 @@ export default function DiseaseDetection({ apiUrl }) {
     : [];
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
 
       {/* Section heading */}
-      <div>
-        <h2 className="text-3xl font-black text-white">Leaf Disease Analysis</h2>
-        <p className="text-white/60 text-lg mt-1">Upload a cassava leaf photo to get an instant AI diagnosis.</p>
+      <div style={{
+        background: "#000080", color: "white",
+        padding: "3px 8px", fontSize: 11, fontWeight: "bold",
+        borderLeft: "3px solid #4080ff"
+      }}>
+        🔬 Leaf Disease Analysis — Upload a cassava leaf photo to get an instant AI diagnosis.
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
 
-        {/* Upload card */}
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-          <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-            <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center">
-              <Camera className="w-4 h-4 text-slate-600" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Upload Leaf Image</h3>
-              <p className="text-slate-400 text-sm">JPG, PNG or WEBP</p>
+        {/* ── Upload panel ─────────────────────────────────────── */}
+        <div className="win-window" style={{ overflow: "hidden" }}>
+          <div className="win-titlebar" style={{ fontSize: 11 }}>
+            <span>📷</span> Upload Leaf Image
+            <div className="win-titlebar-buttons">
+              <div className="win-btn-chrome">?</div>
             </div>
           </div>
+          <div style={{ padding: 8 }}>
 
-          <div className="p-8">
             <input type="file" ref={inputRef} onChange={e => processFile(e.target.files?.[0])} accept="image/*" className="hidden" />
 
             {!preview ? (
               <div
+                className={`win-dropzone${drag ? " drag" : ""}`}
                 onDragOver={e => { e.preventDefault(); setDrag(true);  }}
                 onDragLeave={e => { e.preventDefault(); setDrag(false); }}
                 onDrop={e => { e.preventDefault(); setDrag(false); processFile(e.dataTransfer.files?.[0]); }}
                 onClick={() => inputRef.current.click()}
-                className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all duration-200 ${
-                  drag ? "border-slate-400 bg-slate-50" : "border-slate-200 hover:border-slate-400 hover:bg-slate-50"
-                }`}
+                style={{ cursor: "default", minHeight: 180 }}
               >
-                <div className="w-16 h-16 mx-auto bg-slate-100 rounded-2xl flex items-center justify-center mb-5">
-                  <UploadCloud className="w-8 h-8 text-slate-400" />
-                </div>
-                <p className="text-xl font-bold text-slate-700 mb-2">
-                  {drag ? "Drop your image here" : "Drag & drop your leaf photo"}
+                <div style={{ fontSize: 40, marginBottom: 8, userSelect: "none" }}>🌿</div>
+                <p style={{ fontSize: 12, fontWeight: "bold", marginBottom: 4, color: "#000080" }}>
+                  {drag ? "Release to upload image" : "Drag & drop your cassava leaf photo here"}
                 </p>
-                <p className="text-slate-400 text-base">
-                  or <span className="text-slate-700 font-semibold underline underline-offset-2">click to browse</span> your files
+                <p style={{ fontSize: 11, color: "#808080", marginBottom: 12 }}>
+                  — or —
                 </p>
-                <div className="mt-8 grid grid-cols-3 gap-3">
+                <button className="win-btn primary" onClick={e => { e.stopPropagation(); inputRef.current.click(); }}>
+                  Browse…
+                </button>
+                <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "center" }}>
                   {["Well-lit photo", "Single leaf", "Full leaf in frame"].map(tip => (
-                    <div key={tip} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-                      <p className="text-slate-500 text-xs font-semibold">— {tip}</p>
+                    <div key={tip} className="win-inset" style={{ padding: "2px 8px", fontSize: 10, background: "#ffffc0" }}>
+                      💡 {tip}
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="relative rounded-2xl overflow-hidden border border-slate-200">
-                  <img src={preview} alt="Preview" className="w-full h-72 object-cover" />
-                  <button
-                    onClick={clear}
-                    className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full shadow flex items-center justify-center text-slate-400 hover:text-slate-700 transition"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                  <div className="absolute bottom-3 left-3 bg-black/50 text-white text-xs px-3 py-1.5 rounded-lg font-medium max-w-[80%] truncate">
-                    {file?.name}
-                  </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div className="win-inset" style={{ position: "relative" }}>
+                  <img
+                    src={preview}
+                    alt="Leaf preview"
+                    crossOrigin="anonymous"
+                    style={{ width: "100%", height: 220, objectFit: "cover", display: "block" }}
+                  />
                 </div>
-
-                <button
-                  onClick={predict}
-                  disabled={loading}
-                  className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-base font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg"
-                >
-                  {loading
-                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full spin" />Analyzing leaf…</>
-                    : <><Leaf className="w-4 h-4" />Analyze for Disease</>
-                  }
-                </button>
-
-                <button onClick={clear} className="w-full text-slate-400 hover:text-slate-600 font-semibold text-sm py-2 transition">
-                  Upload a different image
-                </button>
+                <div style={{ fontSize: 10, color: "#808080", borderTop: "1px solid #d4d0c8", paddingTop: 3 }}>
+                  📄 {file?.name}
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    className="win-btn primary"
+                    onClick={predict}
+                    disabled={loading}
+                    style={{ flex: 1, justifyContent: "center", fontSize: 11 }}
+                  >
+                    {loading
+                      ? <><span className="spin" style={{ display: "inline-block", width: 10, height: 10, border: "2px solid #808080", borderTopColor: "#000", borderRadius: "50%" }} /> Analyzing…</>
+                      : "🔬 Analyze for Disease"
+                    }
+                  </button>
+                  <button className="win-btn" onClick={clear} style={{ fontSize: 11 }}>
+                    Clear
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Results card */}
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-          <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-            <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center">
-              <CheckCircle className="w-4 h-4 text-slate-600" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Diagnosis Results</h3>
-              <p className="text-slate-400 text-sm">All 5 class probabilities</p>
+        {/* ── Results panel ────────────────────────────────────── */}
+        <div className="win-window" style={{ overflow: "hidden" }}>
+          <div className="win-titlebar" style={{ fontSize: 11 }}>
+            <span>📋</span> Diagnosis Results
+            <div className="win-titlebar-buttons">
+              <div className="win-btn-chrome">?</div>
             </div>
           </div>
+          <div style={{ padding: 8, minHeight: 280 }}>
 
-          <div className="p-8">
-            {/* Empty */}
+            {/* Empty state */}
             {!result && !loading && (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                  <Leaf className="w-10 h-10 text-slate-300" />
-                </div>
-                <p className="text-lg font-bold text-slate-400">No analysis yet</p>
-                <p className="text-slate-300 text-sm mt-1">Upload a leaf image to begin</p>
+              <div style={{ textAlign: "center", padding: "40px 0", color: "#808080" }}>
+                <div style={{ fontSize: 40, marginBottom: 8 }}>🌱</div>
+                <p style={{ fontSize: 12, fontWeight: "bold", color: "#808080" }}>No analysis yet</p>
+                <p style={{ fontSize: 11 }}>Upload a leaf image to begin diagnosis</p>
               </div>
             )}
 
             {/* Loading */}
             {loading && (
-              <div className="flex flex-col items-center justify-center py-16">
-                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                  <span className="w-10 h-10 border-3 border-slate-200 border-t-slate-700 rounded-full spin" />
+              <div style={{ textAlign: "center", padding: "40px 0" }}>
+                <div style={{ fontSize: 11, marginBottom: 8, color: "#000080", fontWeight: "bold" }}>Running AI Analysis…</div>
+                <div style={{ margin: "0 auto 8px", width: "80%" }}>
+                  <div className="win-progress-track">
+                    <div className="win-progress-fill" style={{ width: "60%" }} />
+                  </div>
                 </div>
-                <p className="text-lg font-bold text-slate-700">Running AI Analysis</p>
-                <p className="text-slate-400 text-sm mt-1">EfficientNetB4 processing…</p>
+                <p style={{ fontSize: 10, color: "#808080" }}>EfficientNetB4 processing…</p>
               </div>
             )}
 
             {/* Error */}
             {result?.error && (
-              <div className="flex items-start gap-3 p-5 bg-red-50 border border-red-200 rounded-2xl">
-                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: 8 }}>
+                <span style={{ fontSize: 24 }}>⚠️</span>
                 <div>
-                  <p className="font-bold text-red-800">Analysis Failed</p>
-                  <p className="text-red-600 text-sm mt-1">{result.error}</p>
+                  <p style={{ fontSize: 11, fontWeight: "bold", color: "#800000" }}>Analysis Failed</p>
+                  <p style={{ fontSize: 11, marginTop: 4 }}>{result.error}</p>
                 </div>
               </div>
             )}
 
             {/* Success */}
             {result && !result.error && top && (
-              <div className="space-y-6 fade-in">
+              <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
 
                 {/* Top result */}
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-                  <div className="flex items-start justify-between gap-4">
+                <fieldset className="win-groupbox">
+                  <legend>{top.key === "Healthy" ? "Plant Status" : "⚠ Disease Detected"}</legend>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                     <div>
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                        {top.key === "Healthy" ? "Plant Status" : "Disease Detected"}
-                      </p>
-                      <p className="text-2xl font-black text-slate-900">{top.key}</p>
-                      <p className="text-sm text-slate-500 mt-2 leading-relaxed max-w-xs">{top.desc}</p>
+                      <p style={{ fontSize: 13, fontWeight: "bold", color: "#000080" }}>{top.key}</p>
+                      <p style={{ fontSize: 10, marginTop: 4, lineHeight: 1.4, color: "#404040" }}>{top.desc}</p>
                     </div>
-                    <div className="shrink-0 text-center bg-white border border-slate-200 rounded-2xl px-5 py-4 shadow-sm">
-                      <p className="text-3xl font-black text-slate-900">{result.confidence.toFixed(1)}%</p>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mt-0.5">Confidence</p>
+                    <div className="win-inset" style={{
+                      textAlign: "center", padding: "6px 12px", background: "#000080", color: "white", flexShrink: 0
+                    }}>
+                      <p style={{ fontSize: 18, fontWeight: "bold" }}>{result.confidence.toFixed(1)}%</p>
+                      <p style={{ fontSize: 9, marginTop: 2 }}>CONFIDENCE</p>
                     </div>
                   </div>
-                </div>
+                </fieldset>
 
                 {/* All probabilities */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Info className="w-4 h-4 text-slate-400" />
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">All Disease Probabilities</p>
-                  </div>
-                  <div className="space-y-3">
+                <fieldset className="win-groupbox">
+                  <legend>All Disease Probabilities</legend>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                     {probs.map(([name, pct]) => {
                       const isTop = name === result.prediction;
                       return (
-                        <div key={name} className={`rounded-xl p-4 ${isTop ? "bg-slate-900 text-white" : "bg-slate-50"}`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className={`text-sm font-bold ${isTop ? "text-white" : "text-slate-600"}`}>{name}</span>
-                            <span className={`text-base font-black tabular-nums ${isTop ? "text-white" : "text-slate-700"}`}>
-                              {pct.toFixed(1)}%
-                            </span>
+                        <div key={name} style={{
+                          background: isTop ? "#000080" : "transparent",
+                          color: isTop ? "white" : "inherit",
+                          padding: "2px 4px",
+                        }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                            <span style={{ fontSize: 10, fontWeight: isTop ? "bold" : "normal" }}>{name}</span>
+                            <span style={{ fontSize: 10, fontWeight: "bold", fontFamily: "monospace" }}>{pct.toFixed(1)}%</span>
                           </div>
-                          <div className={`h-2 rounded-full overflow-hidden ${isTop ? "bg-white/20" : "bg-slate-200"}`}>
+                          <div className="win-progress-track" style={{ height: 10 }}>
                             <div
-                              className={`h-full rounded-full bar-fill ${isTop ? "bg-white" : "bg-slate-400"}`}
-                              style={{ width: `${Math.max(pct, 0.3)}%` }}
+                              className="bar-fill"
+                              style={{
+                                height: "100%",
+                                width: `${Math.max(pct, 0.3)}%`,
+                                background: isTop
+                                  ? "repeating-linear-gradient(90deg, #00c0ff 0px, #00c0ff 8px, #0080c0 8px, #0080c0 10px)"
+                                  : "repeating-linear-gradient(90deg, #808080 0px, #808080 8px, #606060 8px, #606060 10px)"
+                              }}
                             />
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                </div>
+                </fieldset>
 
                 {/* Advice */}
                 {top.key !== "Healthy" && (
-                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
-                    <p className="font-bold text-slate-700 text-sm mb-1">Recommended Action</p>
-                    <p className="text-slate-500 text-sm leading-relaxed">
-                      Contact your local agricultural extension officer. Isolate affected plants immediately to prevent spread.
-                    </p>
+                  <div style={{
+                    background: "#ffffc0",
+                    border: "1px solid #808000",
+                    padding: "4px 8px",
+                    fontSize: 10,
+                    display: "flex",
+                    gap: 6,
+                    alignItems: "flex-start"
+                  }}>
+                    <span>💡</span>
+                    <span><strong>Recommended Action:</strong> Contact your local agricultural extension officer. Isolate affected plants immediately to prevent spread.</span>
                   </div>
                 )}
               </div>
@@ -244,19 +251,27 @@ export default function DiseaseDetection({ apiUrl }) {
       </div>
 
       {/* Model metrics strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Validation Accuracy", value: "86.73%",        sub: "4,280 held-out images"          },
-          { label: "Weighted F1-Score",   value: "0.868",          sub: "Harmonic mean, 5 classes"       },
-          { label: "Training Images",     value: "17,117",         sub: "Stratified 80 / 20 split"       },
-          { label: "Architecture",        value: "EfficientNetB4", sub: "ImageNet pretrained + fine-tuned"},
-        ].map(({ label, value, sub }) => (
-          <div key={label} className="bg-white/10 backdrop-blur rounded-2xl border border-white/15 p-5 text-white">
-            <p className="text-2xl font-black">{value}</p>
-            <p className="text-white/80 font-semibold text-sm mt-1">{label}</p>
-            <p className="text-white/40 text-xs mt-0.5">{sub}</p>
-          </div>
-        ))}
+      <div className="win-window" style={{ padding: 0, overflow: "hidden" }}>
+        <div className="win-titlebar" style={{ fontSize: 11 }}>📊 Model Performance Metrics</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 0 }}>
+          {[
+            { label: "Validation Accuracy", value: "86.73%",        sub: "4,280 held-out images"          },
+            { label: "Weighted F1-Score",   value: "0.868",          sub: "Harmonic mean, 5 classes"       },
+            { label: "Training Images",     value: "17,117",         sub: "Stratified 80/20 split"         },
+            { label: "Architecture",        value: "EfficientNetB4", sub: "ImageNet pretrained + fine-tuned"},
+          ].map(({ label, value, sub }, i) => (
+            <div key={label} style={{
+              padding: "6px 12px",
+              borderRight: i < 3 ? "1px solid #808080" : "none",
+              textAlign: "center",
+              background: "var(--win-bg)",
+            }}>
+              <p style={{ fontSize: 15, fontWeight: "bold", color: "#000080" }}>{value}</p>
+              <p style={{ fontSize: 10, fontWeight: "bold", marginTop: 2 }}>{label}</p>
+              <p style={{ fontSize: 9, color: "#808080" }}>{sub}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

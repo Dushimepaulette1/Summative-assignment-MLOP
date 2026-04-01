@@ -1,5 +1,3 @@
-import { TrendingUp, BarChart3, Layers, Award } from "lucide-react";
-
 const CLASSES = [
   { name: "Cassava Mosaic Disease (CMD)",        short: "CMD",  count: 13158, pct: 61.5 },
   { name: "Healthy",                             short: "HLT",  count: 2577,  pct: 12.0 },
@@ -41,180 +39,243 @@ const TOP_METRICS = [
 
 const maxEdge = Math.max(...EDGE_DATA.map(d => d.score));
 
-function SectionCard({ icon: Icon, title, subtitle, children }) {
-  return (
-    <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-      <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-        <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center">
-          <Icon className="w-4 h-4 text-slate-600" />
-        </div>
-        <div>
-          <h3 className="text-base font-bold text-slate-900">{title}</h3>
-          {subtitle && <p className="text-slate-400 text-sm">{subtitle}</p>}
-        </div>
-      </div>
-      <div className="p-8">{children}</div>
-    </div>
-  );
-}
-
 export default function Visualizations() {
   return (
-    <div className="space-y-6">
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
 
       {/* Heading */}
-      <div>
-        <h2 className="text-3xl font-black text-white">Data Insights & Model Performance</h2>
-        <p className="text-white/60 text-lg mt-1">
-          Feature analysis from 21,397 images and full evaluation of the trained EfficientNetB4 model.
-        </p>
+      <div style={{
+        background: "#000080", color: "white",
+        padding: "3px 8px", fontSize: 11, fontWeight: "bold",
+        borderLeft: "3px solid #4080ff"
+      }}>
+        📊 Data Insights & Model Performance — Feature analysis from 21,397 images.
       </div>
 
-      {/* Top metrics — same style as detection page */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {TOP_METRICS.map(({ label, value, sub }) => (
-          <div key={label} className="bg-white/10 backdrop-blur rounded-2xl border border-white/15 p-5 text-white">
-            <p className="text-2xl font-black">{value}</p>
-            <p className="text-white/80 font-semibold text-sm mt-1">{label}</p>
-            <p className="text-white/40 text-xs mt-0.5">{sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Feature 1 — Class Distribution */}
-      <SectionCard icon={BarChart3} title="Feature 1 — Class Distribution" subtitle="Severe imbalance: CMD accounts for 61.5% of all samples">
-        <div className="space-y-4">
-          {CLASSES.map(({ name, short, count, pct }) => (
-            <div key={short} className="flex items-center gap-5">
-              <span className="w-14 shrink-0 text-center text-xs font-black text-slate-500 bg-slate-100 py-1.5 rounded-lg">
-                {short}
-              </span>
-              <div className="flex-1">
-                <div className="flex justify-between mb-1.5">
-                  <span className="text-sm font-semibold text-slate-700">{name}</span>
-                  <span className="text-sm font-black text-slate-900 tabular-nums">{pct}% &nbsp;·&nbsp; {count.toLocaleString()}</span>
-                </div>
-                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-slate-800 rounded-full bar-fill" style={{ width: `${pct}%` }} />
-                </div>
-              </div>
+      {/* Top metrics */}
+      <div className="win-window" style={{ padding: 0, overflow: "hidden" }}>
+        <div className="win-titlebar" style={{ fontSize: 11 }}>📈 Model Evaluation Summary</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 0 }}>
+          {TOP_METRICS.map(({ label, value, sub }, i) => (
+            <div key={label} style={{
+              padding: "6px 12px",
+              borderRight: i < 3 ? "1px solid #808080" : "none",
+              textAlign: "center",
+              background: "var(--win-bg)",
+            }}>
+              <p style={{ fontSize: 15, fontWeight: "bold", color: "#000080" }}>{value}</p>
+              <p style={{ fontSize: 10, fontWeight: "bold", marginTop: 2 }}>{label}</p>
+              <p style={{ fontSize: 9, color: "#808080" }}>{sub}</p>
             </div>
           ))}
         </div>
-        <div className="mt-6 p-5 bg-slate-50 border border-slate-200 rounded-2xl">
-          <p className="font-bold text-slate-800 text-sm mb-1">Why this matters</p>
-          <p className="text-slate-500 text-sm leading-relaxed">
-            CMD (61.5%) vastly outnumbers CBB (5.1%). Without correction, the model defaults to predicting CMD on every image.
-            We applied stratified splitting and class-weighted loss — giving CBB a weight of <strong className="text-slate-700">3.93×</strong> versus CMD's 0.33×.
-          </p>
-        </div>
-      </SectionCard>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Feature 1 — Class Distribution */}
+      <div className="win-window" style={{ overflow: "hidden" }}>
+        <div className="win-titlebar" style={{ fontSize: 11 }}>
+          📊 Feature 1 — Class Distribution
+          <div className="win-titlebar-buttons">
+            <div className="win-btn-chrome">?</div>
+          </div>
+        </div>
+        <div style={{ padding: 8 }}>
+          <p style={{ fontSize: 10, marginBottom: 6, color: "#808080" }}>Severe imbalance: CMD accounts for 61.5% of all samples</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            {CLASSES.map(({ name, short, count, pct }) => (
+              <div key={short}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                  <span style={{ fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
+                    <span className="win-inset" style={{ padding: "1px 5px", fontSize: 9, fontWeight: "bold", background: "#c0c0c0" }}>
+                      {short}
+                    </span>
+                    {name}
+                  </span>
+                  <span style={{ fontSize: 10, fontWeight: "bold", fontFamily: "monospace" }}>
+                    {pct}% · {count.toLocaleString()}
+                  </span>
+                </div>
+                <div className="win-progress-track" style={{ height: 12 }}>
+                  <div className="bar-fill" style={{
+                    height: "100%",
+                    width: `${pct}%`,
+                    background: "repeating-linear-gradient(90deg, #000080 0px, #000080 8px, #4080c0 8px, #4080c0 10px)"
+                  }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{
+            marginTop: 8,
+            padding: 6,
+            background: "#ffffc0",
+            border: "1px solid #808000",
+            fontSize: 10,
+            lineHeight: 1.4,
+          }}>
+            <strong>💡 Why this matters:</strong> CMD (61.5%) vastly outnumbers CBB (5.1%). Without correction, the model defaults to predicting CMD on every image. We applied stratified splitting and class-weighted loss — giving CBB a weight of <strong>3.93×</strong> versus CMD's 0.33×.
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
 
         {/* Feature 2 — RGB */}
-        <SectionCard icon={Layers} title="Feature 2 — Mean RGB Color" subtitle="Color signature per disease class">
-          <div className="space-y-5">
-            {RGB_DATA.map(({ name, red, green, blue }) => (
-              <div key={name}>
-                <p className="text-sm font-bold text-slate-700 mb-2">{name}</p>
-                <div className="space-y-1.5">
+        <div className="win-window" style={{ overflow: "hidden" }}>
+          <div className="win-titlebar" style={{ fontSize: 11 }}>
+            🎨 Feature 2 — Mean RGB Color
+            <div className="win-titlebar-buttons">
+              <div className="win-btn-chrome">?</div>
+            </div>
+          </div>
+          <div style={{ padding: 8 }}>
+            <p style={{ fontSize: 10, marginBottom: 6, color: "#808080" }}>Color signature per disease class</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {RGB_DATA.map(({ name, red, green, blue }) => (
+                <div key={name}>
+                  <p style={{ fontSize: 10, fontWeight: "bold", marginBottom: 2 }}>{name}</p>
                   {[
                     { l: "R", v: red   },
                     { l: "G", v: green },
                     { l: "B", v: blue  },
                   ].map(({ l, v }) => (
-                    <div key={l} className="flex items-center gap-3">
-                      <span className="text-xs font-black text-slate-400 w-5">{l}</span>
-                      <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-slate-700 rounded-full bar-fill" style={{ width: `${(v / 255) * 100}%` }} />
+                    <div key={l} style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+                      <span style={{ fontSize: 9, fontWeight: "bold", width: 12 }}>{l}</span>
+                      <div className="win-progress-track" style={{ flex: 1, height: 10 }}>
+                        <div className="bar-fill" style={{
+                          height: "100%",
+                          width: `${(v / 255) * 100}%`,
+                          background: "repeating-linear-gradient(90deg, #808080 0px, #808080 6px, #606060 6px, #606060 8px)"
+                        }} />
                       </div>
-                      <span className="text-xs font-bold text-slate-500 w-8 text-right tabular-nums">{v}</span>
+                      <span style={{ fontSize: 9, fontWeight: "bold", fontFamily: "monospace", width: 28, textAlign: "right" }}>{v}</span>
                     </div>
                   ))}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div style={{
+              marginTop: 8,
+              padding: 6,
+              background: "#e0f0ff",
+              border: "1px solid #0000c0",
+              fontSize: 10,
+              lineHeight: 1.4,
+            }}>
+              <strong>Insight:</strong> Healthy leaves peak in the green channel (122). Diseased leaves show elevated red (112 for CBB) — browning and necrosis visible at the pixel level.
+            </div>
           </div>
-          <div className="mt-5 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-            <p className="text-slate-500 text-sm leading-relaxed">
-              <strong className="text-slate-700">Insight:</strong> Healthy leaves peak in the green channel (122). Diseased leaves show elevated red (112 for CBB) — browning and necrosis visible at the pixel level.
-            </p>
-          </div>
-        </SectionCard>
+        </div>
 
         {/* Feature 3 — Edge density */}
-        <SectionCard icon={TrendingUp} title="Feature 3 — Edge Density" subtitle="Texture complexity via Canny edge detection">
-          <div className="space-y-4">
-            {EDGE_DATA.map(({ name, score }) => (
-              <div key={name}>
-                <div className="flex justify-between mb-1.5">
-                  <span className="text-sm font-semibold text-slate-700">{name}</span>
-                  <span className="text-sm font-black text-slate-900 tabular-nums">{score.toFixed(4)}</span>
-                </div>
-                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-slate-800 rounded-full bar-fill"
-                    style={{ width: `${(score / maxEdge) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+        <div className="win-window" style={{ overflow: "hidden" }}>
+          <div className="win-titlebar" style={{ fontSize: 11 }}>
+            📐 Feature 3 — Edge Density
+            <div className="win-titlebar-buttons">
+              <div className="win-btn-chrome">?</div>
+            </div>
           </div>
-          <div className="mt-5 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-            <p className="text-slate-500 text-sm leading-relaxed">
-              <strong className="text-slate-700">Insight:</strong> CGM and CBSD show the highest edge density — irregular spots and lesions produce complex textures. Healthy leaves score lowest (0.0271) with smooth, uniform surfaces.
-            </p>
+          <div style={{ padding: 8 }}>
+            <p style={{ fontSize: 10, marginBottom: 6, color: "#808080" }}>Texture complexity via Canny edge detection</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              {EDGE_DATA.map(({ name, score }) => (
+                <div key={name}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                    <span style={{ fontSize: 10 }}>{name}</span>
+                    <span style={{ fontSize: 10, fontWeight: "bold", fontFamily: "monospace" }}>{score.toFixed(4)}</span>
+                  </div>
+                  <div className="win-progress-track" style={{ height: 10 }}>
+                    <div className="bar-fill" style={{
+                      height: "100%",
+                      width: `${(score / maxEdge) * 100}%`,
+                      background: "repeating-linear-gradient(90deg, #000080 0px, #000080 8px, #4080c0 8px, #4080c0 10px)"
+                    }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{
+              marginTop: 8,
+              padding: 6,
+              background: "#e0f0ff",
+              border: "1px solid #0000c0",
+              fontSize: 10,
+              lineHeight: 1.4,
+            }}>
+              <strong>Insight:</strong> CGM and CBSD show the highest edge density — irregular spots and lesions produce complex textures. Healthy leaves score lowest (0.0271) with smooth, uniform surfaces.
+            </div>
           </div>
-        </SectionCard>
+        </div>
       </div>
 
       {/* Per-class performance table */}
-      <SectionCard icon={Award} title="Per-Class Model Performance" subtitle="CMD leads at F1 0.96 — CBB is hardest at F1 0.62 due to limited training data">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b-2 border-slate-100">
-                <th className="text-left pb-4 text-xs font-black text-slate-400 uppercase tracking-widest">Class</th>
-                <th className="text-center pb-4 px-4 text-xs font-black text-slate-400 uppercase tracking-widest">Precision</th>
-                <th className="text-center pb-4 px-4 text-xs font-black text-slate-400 uppercase tracking-widest">Recall</th>
-                <th className="text-center pb-4 px-4 text-xs font-black text-slate-400 uppercase tracking-widest">F1</th>
-                <th className="text-center pb-4 px-4 text-xs font-black text-slate-400 uppercase tracking-widest">Support</th>
-                <th className="text-left pb-4 pl-4 text-xs font-black text-slate-400 uppercase tracking-widest w-36">F1 Score</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {PER_CLASS.map(({ name, short, prec, rec, f1, sup }) => (
-                <tr key={short} className="hover:bg-slate-50 transition">
-                  <td className="py-4 pr-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{short}</span>
-                      <span className="font-semibold text-slate-800 text-sm">{name}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4 text-center font-mono text-sm font-semibold text-slate-700">{prec.toFixed(2)}</td>
-                  <td className="py-4 px-4 text-center font-mono text-sm font-semibold text-slate-700">{rec.toFixed(2)}</td>
-                  <td className="py-4 px-4 text-center font-mono text-sm font-black text-slate-900">{f1.toFixed(2)}</td>
-                  <td className="py-4 px-4 text-center font-mono text-sm text-slate-500">{sup.toLocaleString()}</td>
-                  <td className="py-4 pl-4">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-slate-800 rounded-full bar-fill" style={{ width: `${f1 * 100}%` }} />
-                      </div>
-                      <span className="text-xs text-slate-400 font-bold tabular-nums w-8">{(f1 * 100).toFixed(0)}%</span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="win-window" style={{ overflow: "hidden" }}>
+        <div className="win-titlebar" style={{ fontSize: 11 }}>
+          🏆 Per-Class Model Performance
+          <div className="win-titlebar-buttons">
+            <div className="win-btn-chrome">?</div>
+          </div>
         </div>
-        <div className="mt-6 pt-5 border-t border-slate-100">
-          <p className="text-slate-400 text-sm">
-            <strong className="text-slate-600">Key finding:</strong> The model performs best on CMD (most training samples) and worst on CBB (fewest samples), directly demonstrating the impact of training data volume on per-class performance.
+        <div style={{ padding: 8 }}>
+          <p style={{ fontSize: 10, marginBottom: 6, color: "#808080" }}>
+            CMD leads at F1 0.96 — CBB is hardest at F1 0.62 due to limited training data
           </p>
+          <div className="win-inset" style={{ overflowX: "auto", background: "white" }}>
+            <table className="win-table" style={{ fontSize: 10 }}>
+              <thead>
+                <tr>
+                  <th>Class</th>
+                  <th style={{ textAlign: "center" }}>Precision</th>
+                  <th style={{ textAlign: "center" }}>Recall</th>
+                  <th style={{ textAlign: "center" }}>F1</th>
+                  <th style={{ textAlign: "center" }}>Support</th>
+                  <th style={{ minWidth: 120 }}>F1 Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {PER_CLASS.map(({ name, short, prec, rec, f1, sup }) => (
+                  <tr key={short}>
+                    <td>
+                      <span className="win-inset" style={{ padding: "1px 4px", fontSize: 9, fontWeight: "bold", background: "#c0c0c0", marginRight: 4 }}>
+                        {short}
+                      </span>
+                      {name}
+                    </td>
+                    <td style={{ textAlign: "center", fontFamily: "monospace" }}>{prec.toFixed(2)}</td>
+                    <td style={{ textAlign: "center", fontFamily: "monospace" }}>{rec.toFixed(2)}</td>
+                    <td style={{ textAlign: "center", fontFamily: "monospace", fontWeight: "bold" }}>{f1.toFixed(2)}</td>
+                    <td style={{ textAlign: "center", fontFamily: "monospace" }}>{sup.toLocaleString()}</td>
+                    <td>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <div className="win-progress-track" style={{ flex: 1, height: 10 }}>
+                          <div className="bar-fill" style={{
+                            height: "100%",
+                            width: `${f1 * 100}%`,
+                            background: "repeating-linear-gradient(90deg, #000080 0px, #000080 8px, #4080c0 8px, #4080c0 10px)"
+                          }} />
+                        </div>
+                        <span style={{ fontSize: 9, fontWeight: "bold", fontFamily: "monospace" }}>
+                          {(f1 * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{
+            marginTop: 8,
+            padding: 6,
+            background: "#e0f0ff",
+            border: "1px solid #0000c0",
+            fontSize: 10,
+            lineHeight: 1.4,
+          }}>
+            <strong>Key finding:</strong> The model performs best on CMD (most training samples) and worst on CBB (fewest samples), directly demonstrating the impact of training data volume on per-class performance.
+          </div>
         </div>
-      </SectionCard>
+      </div>
 
     </div>
   );
