@@ -12,7 +12,24 @@ import datetime
 import uvicorn
 import json
 
-# --- 1. SETUP & UPTIME TRACKING ---
+# --- 1. PATHS (must come first) ---
+BASE_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(BASE_DIR, "models", "cassava_champion.keras")
+UPLOAD_DIR = os.path.join(BASE_DIR, "data", "uploads")
+DB_PATH    = os.path.join(BASE_DIR, "data", "database.json")
+
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+print(f"Loading model from: {MODEL_PATH}")
+
+# --- 2. LOAD MODEL ---
+model = None
+try:
+    model = tf.keras.models.load_model(MODEL_PATH)
+    print("Model loaded successfully!")
+except Exception as e:
+    print(f"Error loading model: {e}")
+
+# --- 3. APP SETUP ---
 app = FastAPI(title="Cassava Disease ML API")
 START_TIME = time.time()
 
@@ -24,17 +41,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = "../data/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-# --- 2. LOAD THE MODEL ---
-MODEL_PATH = "../models/cassava_champion.keras"
-try:
-    model = tf.keras.models.load_model(MODEL_PATH)
-    print("Model loaded successfully!")
-except Exception as e:
-    print(f"Error loading model: {e}")
-
 CLASS_NAMES = {
     0: "Cassava Bacterial Blight (CBB)",
     1: "Cassava Brown Streak Disease (CBSD)",
@@ -43,29 +49,28 @@ CLASS_NAMES = {
     4: "Healthy"
 }
 
-# --- 3. ENDPOINTS ---
+# --- 4. ENDPOINTS ---
 
 @app.get("/")
 def read_root():
-    """Model up-time tracker"""
     uptime_seconds = time.time() - START_TIME
-    uptime_string = str(datetime.timedelta(seconds=int(uptime_seconds)))
+    uptime_string  = str(datetime.timedelta(seconds=int(uptime_seconds)))
     return {"status": "Active", "uptime": uptime_string}
 
 @app.post("/predict")
 async def predict_image(file: UploadFile = File(...)):
-    """Model Prediction from image upload"""
+    if model is None:
+        return JSONResponse(status_code=503, content={"message": "Model not loaded. Check server logs."})
     try:
-        contents = await file.read()
-        image = Image.open(io.BytesIO(contents)).convert("RGB")
-        image = image.resize((224, 224))
+        contents  = await file.read()
+        image     = Image.open(io.BytesIO(contents)).convert("RGB")
+        image     = image.resize((380, 380))
+        img_array = np.array(image, dtype=np.float32) / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
 
-        img_array = tf.keras.preprocessing.image.img_to_array(image)
-        img_array = np.expand_dims(img_array, axis=0) / 255.0
-
-        predictions = model.predict(img_array)
-        predicted_class_index = int(np.argmax(predictions[0]))
-        confidence = float(np.max(predictions[0]))
+        predictions         = model.predict(img_array)
+        predicted_class_idx = int(np.argmax(predictions[0]))
+        confidence          = float(np.max(predictions[0]))
 
         all_probabilities = {
             CLASS_NAMES[i]: round(float(predictions[0][i]) * 100, 2)
@@ -73,9 +78,9 @@ async def predict_image(file: UploadFile = File(...)):
         }
 
         return {
-            "filename": file.filename,
-            "prediction": CLASS_NAMES[predicted_class_index],
-            "confidence": round(confidence * 100, 2),
+            "filename":         file.filename,
+            "prediction":       CLASS_NAMES[predicted_class_idx],
+            "confidence":       round(confidence * 100, 2),
             "all_probabilities": all_probabilities
         }
     except Exception as e:
@@ -83,37 +88,28 @@ async def predict_image(file: UploadFile = File(...)):
 
 @app.post("/upload_retrain_data")
 async def upload_data(files: list[UploadFile] = File(...)):
-    """Upload bulk data and save to database"""
     saved_files = []
-    db_path = "../data/database.json"
-
     for file in files:
-        file_location = f"{UPLOAD_DIR}/{file.filename}"
-        with open(file_location, "wb+") as file_object:
-            file_object.write(await file.read())
+        dest = os.path.join(UPLOAD_DIR, file.filename)
+        with open(dest, "wb+") as f:
+            f.write(await file.read())
         saved_files.append({"filename": file.filename, "status": "uploaded"})
 
     db_data = []
-    if os.path.exists(db_path):
-        with open(db_path, "r") as db_file:
-            db_data = json.load(db_file)
-
+    if os.path.exists(DB_PATH):
+        with open(DB_PATH, "r") as f:
+            db_data = json.load(f)
     db_data.extend(saved_files)
+    with open(DB_PATH, "w") as f:
+        json.dump(db_data, f, indent=4)
 
-    with open(db_path, "w") as db_file:
-        json.dump(db_data, db_file, indent=4)
-
-    return {
-        "message": f"Successfully uploaded and logged {len(saved_files)} files to database.",
-        "files": saved_files
-    }
+    return {"message": f"Uploaded and logged {len(saved_files)} files.", "files": saved_files}
 
 @app.post("/trigger_retrain")
 async def trigger_retrain(background_tasks: BackgroundTasks):
-    """Trigger retraining based on uploaded data"""
     background_tasks.add_task(trigger_retraining_pipeline)
     return {"message": "Retraining triggered successfully in the background."}
 
-# --- 4. RUN SERVER ---
+# --- 5. RUN ---
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

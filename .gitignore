@@ -1,1 +1,3 @@
-models/*.h5
+# Ignore large model files from git (store in Drive/cloud storage)
+# models/*.h5
+# models/*.keras
