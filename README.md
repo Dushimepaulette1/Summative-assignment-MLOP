@@ -22,8 +22,9 @@ This project demonstrates an end-to-end Machine Learning Operations (MLOps) pipe
 ## Video Demo
 [Insert Your YouTube Link Here]
 
-## Deployed URL
-[Insert Your Deployed URL Here]
+## Deployed URLs
+- **Frontend (Vercel):** https://summative-assignment-mlop-one.vercel.app/
+- **Backend API (Hugging Face Spaces):** https://paulette12344545-agri-predict-api.hf.space
 
 ## Directory Structure
 ```
