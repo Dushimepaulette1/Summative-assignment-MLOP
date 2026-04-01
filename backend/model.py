@@ -6,7 +6,7 @@ import numpy as np
 def preprocess_for_retraining(image_path):
     """Requirement: Data Preprocessing of uploaded data"""
     image = Image.open(image_path).convert("RGB")
-    image = image.resize((224, 224))
+    image = image.resize((380, 380))
     img_array = tf.keras.preprocessing.image.img_to_array(image)
     return img_array / 255.0
 
